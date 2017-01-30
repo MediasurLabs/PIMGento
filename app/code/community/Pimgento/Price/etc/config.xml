@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * @author    Agence Dn'D <magento@dnd.fr>
+ * @copyright Copyright (c) 2015 Agence Dn'D (http://www.dnd.fr)
+ * @license   http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+-->
+<config>
+    <modules>
+        <Pimgento_Price>
+            <version>1.0.0</version>
+        </Pimgento_Price>
+    </modules>
+    <global>
+        <models>
+            <pimgento_price>
+                <class>Pimgento_Price_Model</class>
+            </pimgento_price>
+        </models>
+        <helpers>
+            <pimgento_price>
+                <class>Pimgento_Price_Helper</class>
+            </pimgento_price>
+        </helpers>
+        <events>
+            <task_executor_load_task>
+                <observers>
+                    <pimgento_price_add_task>
+                        <class>pimgento_price/observer</class>
+                        <method>addTask</method>
+                    </pimgento_price_add_task>
+                </observers>
+            </task_executor_load_task>
+        </events>
+    </global>
+    <default>
+        <pimdata>
+            <price>
+                <cron_enabled>0</cron_enabled>
+                <cron_file>price.csv</cron_file>
+            </price>
+        </pimdata>
+    </default>
+    <crontab>
+        <jobs>
+            <pimdata_price_cron>
+                <run>
+                    <model>pimgento_price/cron::run</model>
+                </run>
+            </pimdata_price_cron>
+        </jobs>
+    </crontab>
+</config>

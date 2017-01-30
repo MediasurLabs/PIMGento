@@ -99,5 +99,13 @@
                 <Pimgento_Category />
             </depends>
         </Pimgento_Position>
+        <Pimgento_Price>
+            <active>true</active>
+            <codePool>community</codePool>
+            <depends>
+                <Pimgento_Core />
+                <Pimgento_Product />
+            </depends>
+        </Pimgento_Price>
     </modules>
 </config>
