@@ -216,43 +216,33 @@ class Pimgento_Asset_Model_Import extends Pimgento_Core_Model_Import_Abstract
     {
         $adapter = $this->getAdapter();
 
+        $ftp = null;
+
         try {
+
             $connexion = Mage::getStoreConfig('pimdata/asset/connexion');
 
-            $select = $adapter->select()->from(
-                $adapter->getTableName('pimgento_asset'),
-                array('file', 'image')
-            );
+            if ($connexion == 'ftp') {
+                /* @var $ftp Varien_Io_Ftp */
+                $ftp = new Varien_Io_Ftp();
 
-            $query = $adapter->query($select);
+                $config = array(
+                    'host'     => Mage::getStoreConfig('pimdata/asset/host'),
+                    'user'     => Mage::getStoreConfig('pimdata/asset/user'),
+                    'password' => Mage::getStoreConfig('pimdata/asset/password'),
+                );
 
-            $directory = Mage::helper('pimgento_asset')->getBaseMediaPath();
-
-            if ($connexion == 'ftp' || $connexion == 'sftp') {
-
-                $ftp = null;
-
-                if ($connexion == 'ftp') {
-                    /* @var $ftp Varien_Io_Ftp */
-                    $ftp = new Varien_Io_Ftp();
-
-                    $config = array(
-                        'host'     => Mage::getStoreConfig('pimdata/asset/host'),
-                        'user'     => Mage::getStoreConfig('pimdata/asset/user'),
-                        'password' => Mage::getStoreConfig('pimdata/asset/password'),
-                    );
-
-                    if (Mage::getStoreConfig('pimdata/asset/directory')) {
-                        $config['path'] = Mage::getStoreConfig('pimdata/asset/directory');
-                    }
-
-                    if (Mage::getStoreConfig('pimdata/asset/passive')) {
-                        $config['passive'] = true;
-                    }
-
-                    $ftp->open($config);
+                if (Mage::getStoreConfig('pimdata/asset/directory')) {
+                    $config['path'] = Mage::getStoreConfig('pimdata/asset/directory');
                 }
 
+                if (Mage::getStoreConfig('pimdata/asset/passive')) {
+                    $config['passive'] = true;
+                }
+
+                $ftp->open($config);
+
+            } else {
                 if ($connexion == 'sftp') {
                     /* @var $ftp Varien_Io_Sftp */
                     $ftp = new Varien_Io_Sftp();
@@ -268,30 +258,26 @@ class Pimgento_Asset_Model_Import extends Pimgento_Core_Model_Import_Abstract
                     if (Mage::getStoreConfig('pimdata/asset/directory')) {
                         $ftp->cd(Mage::getStoreConfig('pimdata/asset/directory'));
                     }
+
+                } else {
+                    $task->error(
+                        Mage::helper('pimgento_asset')->__(
+                            'Connexion type %s is not authorised', $connexion
+                        )
+                    );
                 }
+            }
 
-                if ($ftp) {
-                    while (($row = $query->fetch())) {
-                        if (is_file($directory . $row['image'])) {
-                            continue;
-                        }
-                        $dir = dirname($directory . $row['image']);
-                        if (!is_dir($dir)) {
-                            mkdir($dir, 0777, true);
-                        }
-                        $ftp->read($row['file'], $directory . $row['image']);
-                    }
+            if ($ftp) {
 
-                    $ftp->close();
-                }
-
-            } elseif ($connexion == 'scp') {
-                $connection = ssh2_connect(Mage::getStoreConfig('pimdata/asset/host'), 22);
-                ssh2_auth_password(
-                    $connection,
-                    Mage::getStoreConfig('pimdata/asset/user'),
-                    Mage::getStoreConfig('pimdata/asset/password')
+                $select = $adapter->select()->from(
+                    $adapter->getTableName('pimgento_asset'),
+                    array('file', 'image')
                 );
+
+                $query = $adapter->query($select);
+
+                $directory = Mage::helper('pimgento_asset')->getBaseMediaPath();
 
                 while (($row = $query->fetch())) {
                     if (is_file($directory . $row['image'])) {
@@ -301,19 +287,11 @@ class Pimgento_Asset_Model_Import extends Pimgento_Core_Model_Import_Abstract
                     if (!is_dir($dir)) {
                         mkdir($dir, 0777, true);
                     }
-                    ssh2_scp_recv(
-                        $connection,
-                        Mage::getStoreConfig('pimdata/asset/directory') . $row['file'],
-                        $directory . $row['image']
-                    );
+                    $ftp->read($row['file'], $directory . $row['image']);
                 }
 
-            } else {
-                $task->error(
-                    Mage::helper('pimgento_asset')->__(
-                        'Connexion type %s is not authorised', $connexion
-                    )
-                );
+                $ftp->close();
+
             }
 
         } catch (Exception $e) {
