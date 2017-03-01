@@ -155,6 +155,9 @@ class Pimgento_Price_Model_Import extends Pimgento_Core_Model_Import_Abstract
      */
     public function reindex($task)
     {
+        //we reset the code to use the specific configuration for pimgento_price task
+        $this->_code = 'price';
+
         if ($task->getNoReindex()) {
             return false;
         }
@@ -172,7 +175,11 @@ class Pimgento_Price_Model_Import extends Pimgento_Core_Model_Import_Abstract
         Mage::dispatchEvent('shell_reindex_init_process');
 
         $processes = array(
+            'catalog_product_attribute',
+            'catalog_product_flat',
             'catalog_product_price',
+            'catalog_category_product',
+            'catalogsearch_fulltext'
         );
 
         foreach ($processes as $code) {

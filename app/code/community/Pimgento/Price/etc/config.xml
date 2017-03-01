@@ -39,6 +39,8 @@
             <price>
                 <cron_enabled>0</cron_enabled>
                 <cron_file>price.csv</cron_file>
+                <cache>block_html,collections,eav</cache>
+                <reindex>1</reindex>
             </price>
         </pimdata>
     </default>
