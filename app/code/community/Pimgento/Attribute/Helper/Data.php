@@ -73,7 +73,7 @@ class Pimgento_Attribute_Helper_Data extends Mage_Core_Helper_Data
                 'source_model' => 'eav/entity_attribute_source_boolean',
             ),
             'multiselect' => array(
-                'backend_type' => 'varchar',
+                'backend_type' => 'text',
                 'frontend_input' => 'multiselect',
                 'backend_model' => 'eav/entity_attribute_backend_array',
                 'source_model' => NULL,
